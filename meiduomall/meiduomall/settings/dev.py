@@ -69,7 +69,7 @@ CORS_ORIGIN_WHITELIST = (
 CORS_ALLOW_CREDENTIALS = True
 
 ROOT_URLCONF = 'meiduomall.urls'
-
+AUTHENTICATION_BACKENDS = ['users.utils.UserMobileAuthBackend']
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',

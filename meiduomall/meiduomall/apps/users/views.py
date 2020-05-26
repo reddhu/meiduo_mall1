@@ -1,10 +1,11 @@
-from django.shortcuts import render
+import json
 from .models import User
 from django.views import View
 from django import http
 import json
 import re
 from django_redis import get_redis_connection
+from django.contrib.auth import login, authenticate
 
 
 # Create your views here.
@@ -60,4 +61,24 @@ class RegisterPage(View):
                                             mobile=mobile)
         except Exception as e:
             return http.JsonResponse({'code': 400, 'errmsg': '保存到数据库出错'}, json_dumps_params={'ensure_ascii': False})
+        login(request, user)
         return http.JsonResponse({'code': 0, 'errmsg': '用户注册成功'}, json_dumps_params={'ensure_ascii': False})
+
+
+class LoginView(View):
+    def post(self, request):
+        temp_dict = json.loads(request.body.decode())
+        username = temp_dict['username']
+        password = temp_dict['password']
+        remembered = temp_dict['remembered']
+        if not all([username, password]):
+            return http.JsonResponse({'code': 400, 'errmsg':'缺少必传参数'}, json_dumps_params={'ensure_ascii': False})
+        user = authenticate(username=username, password=password)
+        if not user:
+            return http.JsonResponse({'code': 400, 'errmsg':'用户名或者密码错误'}, json_dumps_params={'ensure_ascii': False})
+        login(request, user)
+        if not remembered:
+            request.session.set_expiry(0)
+        else:
+            request.session.set_expiry(None)
+        return http.JsonResponse({'code': 0, 'errmsg': '登陆成功'}, json_dumps_params={'ensure_ascii': False})
